@@ -31,8 +31,10 @@ class Human():
 			self.children.append(child)
 			parent2.children.append(child)
 			return child
-		return None  # holy shit
+		return None  # abort func
 
+	# this function shows you a human
+	# stand-in for future dataviz pop-up, or a more complex UI
 	def printme(self):
 		print(f"You are looking at {self.name}")
 		print(f"Age: {self.age}")
@@ -40,22 +42,42 @@ class Human():
 		print(f"Children: {[i.name for i in self.children]}")
 		print(f"Parents: {[i.name for i in self.parents]}")
 
-def main():
-	adam = Human(name="Adam", age=25, dna={'sex':'M', 'temperament':'horny', 'height': 6})
-	eve = Human(name="Eve", age=25, dna={'sex':'F', 'temperament':'horny', 'height': 6})
-	humans = [adam, eve]
-	humans.append(adam.create_child(eve))
-	humans[-1].printme()
+class Simulation():
+	# initialize the sim		
+	# passing in a year parameter will simulate X years immediately after startup
+	def __init__(self, year=0, humans=[]):
+		self.year = year
+		self.humans = humans
+		self.make_adam_and_eve()
+		if year != 0:
+			simulate(years)
+		pass
+
+	# this debug(?) function creates custom starting parameters for the sim for easy testing
+	def make_adam_and_eve(self):
+		adam = Human(name="Adam", age=25, dna={'sex':'M', 'temperament':'', 'height': 6})
+		eve = Human(name="Eve", age=25, dna={'sex':'F', 'temperament':'', 'height': 6})
+		baby = adam.create_child(eve)
+		baby.printme()
+		self.humans.extend([adam, eve, baby])
+
+
+	# run the simulation for the specified duration of time
+	# 1 tick = 1 year
+	def simulate(years = 1):
+		if years >= 1:
+			for i in range(years):
+				grow_humans()
+				self.year += 1
+
+	# increase everyones age by 1
+	def grow_humans(self):
+		for human in self.humans:
+			human.age += 1
+
 
 
 if __name__ == "__main__":
-	main()
+	sim = Simulation()
 
 
-
-
-
-
-# emphasis on modularity (make it easy to revamp systems in the future, accept open-source contributions as new modules that flesh out features)
-# emphasis on first-principles (build the sim grounded in real-world data or theories about how the world works. but make simplifying assumptions as necessary)
-#  ^ the essence of this project is emergence
