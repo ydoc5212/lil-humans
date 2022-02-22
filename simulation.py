@@ -43,6 +43,7 @@ class Human():
 	def printme(self, tick):
 		print(f"You are looking at {self.name}")
 		print(f"Age: {self.get_age(tick)}")
+		print(f"Height: {self.height}")
 		print(f"DNA: {self.dna}")
 		print(f"Children: {[i.name for i in self.children]}")
 		print(f"Parents: {[i.name for i in self.parents]}")
@@ -55,7 +56,7 @@ class Simulation():
 	# initialize the sim		
 	# passing in a year parameter will simulate X years immediately after startup
 	def __init__(self, tick=0, num_init_humans=0, humans=[]):
-		self.tick = tick
+		self.tick = 0  # we will iterate this using the arg tick
 		self.humans = humans
 		self.num_init_humans = num_init_humans
 		self.make_starter_humans(num_init_humans)
@@ -69,14 +70,14 @@ class Simulation():
 		for i in range(int(num_humans)):
 			is_male = rand_bool() 
 			name, sex = ("Adam", "M") if is_male else ("Eve", "F")
-			new_human = Human(name=name, birthdate=-25, dna={'sex':sex, 'temperament':'', 'height': 6})
+			new_human = Human(name=name, height=6, birthdate=-25, dna={'sex':sex, 'temperament':'', 'height': 6})
 			self.humans.append(new_human)
 
 		# make a bunch of babies as a debug
 		for a in self.humans:
 			if a.name == 'Adam':
 				for e in self.humans:
-					if e.name == 'Eve':
+					if e.name == 'Eve':	
 						baby = a.create_child(e, self.tick)
 						self.humans.append(baby)
 						baby.printme(self.tick)
@@ -99,8 +100,8 @@ class Simulation():
 		for human in self.humans:
 			age = human.get_age(curr_tick)
 			# all humans grow linearly towards their genetic max at 18 y.o.
-			if age <= 18:	
-				age_delta = human.get_age(curr_tick) - 18
+			if age < 18:	
+				age_delta = 18 - human.get_age(curr_tick)
 				height_delta = human.dna['height'] - human.height
 				human.height += height_delta/age_delta
 		pass
