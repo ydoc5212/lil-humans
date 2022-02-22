@@ -6,8 +6,7 @@ Watch your lil humans grow! This is an open-source simulation project based on [
 
 
 # For open-source contributors
-## Our Values
-It's important to set up some ground rules for contributions to the project.
+It's important to set up some ground rules for contributions to the project. Here are some of our values:
 ### Modularity
 * Code Style: Make it easy to revamp your systems in the future, or remove them if they're breaking things. 
 * Temporal Modularity: (for functions that take ticks as input) I want this sim to be as temporarlly-scalable as possible. That is to say, implementations should be modular enough for the time scale to change from years to days. The ticks are currently years, but perhaps could be made into smaller units of time in the future for more granular simulations. Adding in behaviors on those smaller levels with introduce the variation necessary to make an interesting grand-scale sim.
