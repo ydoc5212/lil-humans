@@ -6,9 +6,6 @@ Watch your lil humans grow! This is an open-source simulation project based on [
 
 
 # For open-source contributors
-## Where this project is going
-While this is currently implemented with a Python backend, I hope to get this project web hosting so that you can load up a website like lilhumans.com and see how they've been doing.
-
 ## Our Values
 It's important to set up some ground rules for contributions to the project.
 ### Modularity
