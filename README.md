@@ -4,9 +4,7 @@ Watch your lil humans grow! This is an open-source simulation project based on [
 ## Features
 Currently a PyWebIO-based browser sim!
 ## Installation & Usage
-Clone the GitHub repo and run `simulation.py` with the following command-line arguments as such:
-
-`python --ticks [# ticks] --humans [# initial humans]`
+Clone the GitHub repo and run `simulation.py`. Your browser should open "PyWebIO" in a new tab.
 ## Screenshots
 ![image](https://user-images.githubusercontent.com/20691507/155281847-a32c5e43-22fe-4f2e-9e12-02e1798ec6ef.png)
 
