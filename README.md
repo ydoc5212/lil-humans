@@ -4,7 +4,7 @@ Watch your lil humans grow! This is an open-source simulation project based on [
 ## Features
 Currently a PyWebIO-based browser sim!
 ## Installation & Usage
-Clone the GitHub repo, navigate to it in your command-line interface of choice, and run `python simulation.py`. Your browser should open "PyWebIO" in a new tab.
+Clone the GitHub repo with your command-line interface of choice, navigate into the project directory, and run `python simulation.py`. Your browser should open "PyWebIO" in a new tab. That's it!
 ## Screenshots
 ![image](https://user-images.githubusercontent.com/20691507/155281847-a32c5e43-22fe-4f2e-9e12-02e1798ec6ef.png)
 
