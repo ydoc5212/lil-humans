@@ -1,5 +1,4 @@
 import random
-import argparse
 
 from pywebio.input import *
 from pywebio.output import *
@@ -125,7 +124,6 @@ class Simulation():
 
 
 if __name__ == "__main__":
-
 	ticks = input('Ticks to run:', type=NUMBER)
 	humans = input('Initial Humans:', type=NUMBER)
 
