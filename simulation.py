@@ -1,6 +1,9 @@
 import random
 import argparse
 
+from pywebio.input import *
+from pywebio.output import *
+
 def rand_from_list(list):
 	return list[random.randrange(len(list))]
 
@@ -14,6 +17,23 @@ def recombine_dna(dna):
 	for key, value in dna.items():
 		combined_dna[key] = rand_from_list(value)
 	return combined_dna
+
+# this function handles the front-end
+def output_text(text):
+	print(text)
+	put_text(text)
+
+def print_humans(human_list):
+	table = [['Name','Birthdate','DNA','Children','Parents','Height']]
+	for human in human_list:
+		# vars() is a nifty func that takes an object's attributes and prints them
+		table += [vars(human).values()]
+	put_table(table)
+
+# outputs current state of sim at the end of a tick
+def sim_output(tick, humans):
+	output_text(f"\nTick: {tick}")
+	print_humans(humans)
 
 class Human():
 	def __init__(self, name="", birthdate=0, height=0, dna={'sex' : '', 'temperament': {}, 'height': 0}, children=[], parents=[]):
@@ -41,12 +61,12 @@ class Human():
 	# this function shows you a human
 	# stand-in for future dataviz pop-up, or a more complex UI
 	def printme(self, tick):
-		print(f"You are looking at {self.name}")
-		print(f"Age: {self.get_age(tick)}")
-		print(f"Height: {self.height}")
-		print(f"DNA: {self.dna}")
-		print(f"Children: {[i.name for i in self.children]}")
-		print(f"Parents: {[i.name for i in self.parents]}")
+		output_text(f"You are looking at {self.name}")
+		output_text(f"Age: {self.get_age(tick)}")
+		output_text(f"Height: {self.height}")
+		output_text(f"DNA: {self.dna}")
+		output_text(f"Children: {[i.name for i in self.children]}")
+		output_text(f"Parents: {[i.name for i in self.parents]}")
 
 	# this func dynamically calculates age as-needed so we dont have to manually update per tick
 	def get_age(self, curr_tick):
@@ -80,7 +100,6 @@ class Simulation():
 					if e.name == 'Eve':	
 						baby = a.create_child(e, self.tick)
 						self.humans.append(baby)
-						baby.printme(self.tick)
 		return
 
 
@@ -91,9 +110,7 @@ class Simulation():
 			for i in range(ticks):
 				self.grow_humans(self.tick)
 				self.tick += 1
-				print(f"\nTick: {self.tick}")
-				for h in self.humans:
-					h.printme(self.tick)
+				sim_output(self.tick, self.humans)
 
 	# increase everyones age by 1
 	def grow_humans(self, curr_tick):
@@ -107,18 +124,10 @@ class Simulation():
 		pass
 
 
-
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser(description="""
-	Let's create a simulation of lil humans.""")
-	parser.add_argument("--tick", help="Optional. How many ticks to run the simulation immediately after initialization.")
-	parser.add_argument("--humans", help="Optional. Unimplemented. How many humans to populate the sim with upon initialization.")
-	args = parser.parse_args()
-	tick_v = args.tick
-	humans_v = args.humans
-	tick_v = 0 if not tick_v else int(tick_v) 
-	humans_v = 0 if not humans_v else int(humans_v) 
 
-	sim = Simulation(tick_v, humans_v)
+	ticks = input('Ticks to run:', type=NUMBER)
+	humans = input('Initial Humans:', type=NUMBER)
 
+	sim = Simulation(ticks, humans)
 
