@@ -13,7 +13,6 @@ Currently a PyWebIO-based browser sim!
 
 Your browser should open "PyWebIO" in a new tab. That's it!
 ## Screenshots
-![image](https://user-images.githubusercontent.com/20691507/155281847-a32c5e43-22fe-4f2e-9e12-02e1798ec6ef.png)
 
 
 # For open-source contributors
