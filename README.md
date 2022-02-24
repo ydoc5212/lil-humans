@@ -4,7 +4,14 @@ Watch your lil humans grow! This is an open-source simulation project based on [
 ## Features
 Currently a PyWebIO-based browser sim!
 ## Installation & Usage
-Clone the GitHub repo with your command-line interface of choice, navigate into the project directory, and run `python simulation.py`. Your browser should open "PyWebIO" in a new tab. That's it!
+* [Install Git](https://git-scm.com/downloads) and [Python](https://www.python.org/downloads/)
+* Click the bright green 'Code' button and copy the link
+* Open Command Prompt (Windows) or Terminal (Mac)
+* type `git clone [paste url here]`
+* type `cd lil-humans`
+* type `python simulation.py`
+
+Your browser should open "PyWebIO" in a new tab. That's it!
 ## Screenshots
 ![image](https://user-images.githubusercontent.com/20691507/155281847-a32c5e43-22fe-4f2e-9e12-02e1798ec6ef.png)
 
