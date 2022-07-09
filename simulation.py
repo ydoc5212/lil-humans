@@ -3,6 +3,8 @@ import random
 from pywebio.input import *
 from pywebio.output import *
 
+# from items import *
+
 def rand_from_list(list):
 	return list[random.randrange(len(list))]
 
@@ -79,7 +81,6 @@ class Planet():
 
 class Simulation():
 	# initialize the sim		
-	# passing in a year parameter will simulate X years immediately after startup
 	def __init__(self, ticks_to_run=0, num_init_humans=0, humans=[]):
 		self.humans = humans
 		self.num_init_humans = num_init_humans
@@ -111,23 +112,24 @@ class Simulation():
 
 
 	# this function does the dirty work of the sim
-	# 1 tick = 1 year
+	# 1 tick = 1 day
 	def simulate(self, ticks = 1):
 		if ticks >= 1:
 			for i in range(ticks):
 				# update states
-				self.age_humans()
+				self.age_humans(self.humans)
 				# simulate decisions
-				self.forage()
+				self.forage(self.humans)
 				# check on states
-				self.check_nutrition()
+				self.check_nutrition(self.humans)
 				# wrap up the tick and output relevant data
 				self.curr_tick += 1
 				sim_output(self.curr_tick, self.humans)
 
 	# increase everyones age and height
-	def age_humans(self):
-		for human in self.humans:
+	# O(n)
+	def age_humans(self, humans):
+		for human in human:
 			age = human.get_age(self.curr_tick)
 			# all humans grow linearly towards their genetic max at 18 y.o.
 			if age < 18:	
@@ -158,9 +160,10 @@ class Simulation():
 		return sufficient_quantity
 
 	# every human forages 2 lemons per day
-	# TODO only adults? + who forages lemons? can familial systems out-source lemon gathering to one parent?
-	def forage(self):
-		for human in self.humans:
+	# TODO only adults? + who forages lemons? 
+	# O(n)
+	def forage(self, humans):
+		for human in humans:
 			self.edit_inventory(human, 'lemon', 3)
 		pass
 
@@ -169,7 +172,10 @@ class Simulation():
 		output_text(f"{human.name} died of {reason}... but we gave them a second chance!")
 		pass
 
-	def check_nutrition(self):
+	# calculate whether each human has enough food to survive
+	# TODO: familial systems must provide lemons to their children
+	# O(n)
+	def check_nutrition(self, humans):
 		for human in self.humans:
 			for i in range(human.food_need):
 				if self.edit_inventory(human, 'lemon', -1):
