@@ -66,9 +66,13 @@ class Simulation():
 
         # create seed humans
         for i in range(random.randrange(15, 40)):
-            self.humans.append(Human(age=random.randrange(15, 35), gender=random.choices(list(Gender), [0.45, 0.45, 0.1], k=1)[0], is_alive_bool=True, puberty_bool=True, parents=None, children=None, spouse=None, job=None, x=(np.random.uniform(0, 100)), y=(np.random.uniform(0, 100)), OCEAN={'O':random.random(),'C':random.random(),'E':random.random(),'A':random.random(),'N':random.random()}))
+            self.humans.append(Human(age=random.randrange(15, 35), gender=random.choices(list(Gender), [0.45, 0.45, 0.1], k=1)[0], is_alive_bool=True, puberty_bool=True, parents=None, children=None, spouse=None, job=None, x=(np.random.uniform(0, 100)), y=(np.random.uniform(0, 100)), OCEAN={'O':random.uniform(),'C':random.uniform(),'E':random.uniform(),'A':random.uniform(),'N':random.uniform()}))
         self.sim_messages.append(f'You come into awareness of a corner of the world that has {len(self.humans)} humans in it')
     
+    def kill(self):
+        humans = []
+        print("Terminated.")
+
     def do_tick(self):
         # prepare event counter for this tick
         self.events['births'].append(0)
@@ -122,6 +126,7 @@ class Simulation():
                 if (human.gender == Gender.FEMALE and event_happens_gaussian(human.age, 10, 1.5)) or (human.gender == Gender.MALE and event_happens_gaussian(human.age, 12, 1.5) or (human.gender == Gender.NONBINARY and event_happens_gaussian(human.age, 11, 1.5))):
                     human.puberty_bool = True
                     self.events['pubescences'][self.time_elapsed_ticks] += 1
+
     def marry_humans(self):
         # pair spouses (O(n)!)
         # TODO more efficient way to hide dead humans from list to prevent iterating. how? do i move to a separate list?
@@ -146,7 +151,6 @@ class Simulation():
                         self.events['marriages'][self.time_elapsed_ticks] += 1
 
     def simulate_interactions(self, n_steps: int, dt: float, delta: float, interaction_radius: float):
-
         n_agents = len(self.humans)
         
         # Create empty arrays for x, y positions for all agents for all steps
@@ -210,10 +214,16 @@ if __name__ == '__main__':
     sim = Simulation(0, tick_to_stop=1)
 
     while(True):
+        # run sim
         while(sim.time_elapsed_ticks < sim.tick_to_stop):
             sim.do_tick()
+
         response = input('How many ticks would you like to simulaculate before stopping? Eg. 10:\n')
+
+        # handle possible input
         if response == "plot":
             sim.plot()
-        else:
+        if response == "kill":
+            sim.kill()
+        elif response.isdigit():
             sim.tick_to_stop = int(response) + sim.time_elapsed_ticks
