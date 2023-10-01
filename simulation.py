@@ -20,7 +20,7 @@ def dies_this_year(age, life_expectancy):
 class Gender(Enum):
     FEMALE = 0
     MALE = 1
-    NONCONFORMING = 2
+    NONBINARY = 2
 
 # has: list of human objs,
 class Simulation():
@@ -74,8 +74,7 @@ class Simulation():
         # determine puberty
         for human in self.humans:
             if not human.puberty_bool:
-                print(f'your gender is {human.gender}')
-                if (human.gender == Gender.FEMALE and event_happens_gaussian(human.age, 10, 1.5)) or (human.gender == Gender.MALE and event_happens_gaussian(human.age, 12, 1.5)):
+                if (human.gender == Gender.FEMALE and event_happens_gaussian(human.age, 10, 1.5)) or (human.gender == Gender.MALE and event_happens_gaussian(human.age, 12, 1.5) or (human.gender == Gender.NONBINARY and event_happens_gaussian(human.age, 11, 1.5)):
                     human.puberty_bool = True
                     self.pubescenses_this_tick += 1
 
