@@ -66,7 +66,7 @@ class Simulation():
 
         # create seed humans
         for i in range(random.randrange(15, 40)):
-            self.humans.append(Human(age=random.randrange(15, 35), gender=random.choices(list(Gender), [0.45, 0.45, 0.1], k=1)[0], is_alive_bool=True, puberty_bool=True, parents=None, children=None, spouse=None, job=None, x=(np.random.uniform(0, 100)), y=(np.random.uniform(0, 100)), OCEAN={'O':random.uniform(),'C':random.uniform(),'E':random.uniform(),'A':random.uniform(),'N':random.uniform()}))
+            self.humans.append(Human(age=random.randrange(15, 35), gender=random.choices(list(Gender), [0.45, 0.45, 0.1], k=1)[0], is_alive_bool=True, puberty_bool=True, parents=None, children=None, spouse=None, job=None, x=(np.random.uniform(0, 100)), y=(np.random.uniform(0, 100)), OCEAN={'O':random.uniform(0,1),'C':random.uniform(0,1),'E':random.uniform(0,1),'A':random.uniform(0,1),'N':random.uniform(0,1)}))
         self.sim_messages.append(f'You come into awareness of a corner of the world that has {len(self.humans)} humans in it')
     
     def kill(self):
@@ -211,7 +211,7 @@ class Simulation():
 
 
 if __name__ == '__main__':
-    sim = Simulation(0, tick_to_stop=1)
+    sim = Simulation(time_elapsed_ticks=0, tick_to_stop=1)
 
     while(True):
         # run sim
