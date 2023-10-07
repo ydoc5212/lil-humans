@@ -12,6 +12,15 @@ MALE_PUBERTY_MEAN = 12
 FEMALE_PUBERTY_MEAN = 10
 OTHER_PUBERTY_MEAN = (MALE_PUBERTY_MEAN+FEMALE_PUBERTY_MEAN)/2
 
+
+class Gender(Enum):
+    FEMALE = 0
+    MALE = 1
+    OTHER = 2
+sub_pronouns={Gender.MALE: 'He', Gender.FEMALE: 'She', Gender.OTHER: 'They'}
+obj_pronouns={Gender.MALE: 'Him', Gender.FEMALE: 'Her', Gender.OTHER: 'Them'}
+
+
 # uses statistics to determine whether or not a particular event happens this year
 # in: x, mu, sigma
 def event_happens_gaussian(x: int, mu: int, sigma: float = 10) -> bool:
@@ -25,23 +34,19 @@ def dies_this_year(age, life_expectancy):
     mortality_rate = a * math.exp(b * age)
     return random.random() <= mortality_rate
 
-class Gender(Enum):
-    FEMALE = 0
-    MALE = 1
-    OTHER = 2
 
 class Job(Enum):
     FARMER = 0
     INVENTOR = 1
     ARTIST = 2
-    POLITICIAN = 3
+    LEADER = 3
     LEARNER = 4
     WARRIOR = 5
-
+    MERCHANT = 6
 
 
 class Human:
-    def __init__(self, id: int, age: int, birth_tick: int, gender: Gender, is_alive_bool: bool, puberty_bool: bool, parents: Optional[list["Human"]], children: Optional[list["Human"]], spouse: Optional["Human"], job: Optional[str], x:int, y:int, OCEAN:dict):
+    def __init__(self, id: int, age: int, birth_tick: int, gender: Gender, is_alive_bool: bool, puberty_bool: bool, parents: Optional[list["Human"]], children: Optional[list["Human"]], spouse: Optional["Human"], job: Optional[str], x:int, y:int, personality:dict, relationships:dict):
         self.id = id
         self.age = age
         self.birth_tick = birth_tick
@@ -54,16 +59,88 @@ class Human:
         self.job = job
         self.x = x
         self.y = y
-        self.OCEAN = OCEAN
+        self.personality = personality
+        self.relationships = relationships
 
     # combine self and partner genetics into a new human
     # args: partner (Human), current time in ticks, the id of the new human in the list
     def give_birth(self, partner, time_ticks, id) -> "Human":
-        return Human(id=id, age=0, birth_tick=time_ticks, gender=random.choices(list(Gender), [0.45, 0.45, 0.1], k=1)[0], is_alive_bool=True, puberty_bool=False, parents=[self, partner], children=None, spouse=None, job=None, x=self.x, y=self.y, OCEAN={trait: (self.OCEAN[trait] + partner.OCEAN[trait]) / 2 for trait in self.OCEAN})
+        gender = random.choices(list(Gender), [0.45, 0.45, 0.1], k=1)[0]
+        personality = {trait: (self.personality[trait] + partner.personality[trait]) / 2 for trait in self.personality}
+        return Human(id=id, age=0, birth_tick=time_ticks, gender=gender, is_alive_bool=True, puberty_bool=False, parents=[self, partner], children=None, spouse=None, job=None, x=self.x, y=self.y, personality=personality, relationships={self:50, partner:50})
 
     def interact(self, other):
         # print(f'human of age {self.age} is interacting with a human of age {other.age} at {self.x},{self.y}!!')
-        pass
+        # consequences: big or small change in their relationship
+        # should utilize a compbination of the OCEAN traits dict each human has, as well as their current relationship status
+
+        # if human extroverted enough to interact
+        if random.random() < self.personality['E']:
+            # current dummy interaction is solely based off perpetuating previous interactions
+            if other in self.relationships:
+                if self.relationships[other] < 0:
+                    self.relationships[other] = max(self.relationships[other] - 10, -100)
+                    other.relationships[self] = max(other.relationships.get(self,0) - 10, -100)
+
+                elif self.relationships[other] > 0:
+                    self.relationships[other] = min(self.relationships[other] + 10, 100)
+                    other.relationships[self] = min(other.relationships.get(self,0) + 10, 100)
+            else:
+                self.relationships[other] = random.randrange(-5,int(10*self.personality['A']))  
+                other.relationships[self] = other.relationships.get(self, 0) + random.randint(-10,10)  
+
+        # print(f"After interaction, human {self.id} feels {self.relationships.get(other,0)} about human {other.id}.")
+
+    def print_relationship(self, other):
+        relationship = self.relationships.get(other,0)
+        self_pronoun = sub_pronouns[self.gender]
+        self_obj_pronoun = obj_pronouns[self.gender]
+        other_pronoun = obj_pronouns[other.gender]
+
+        if other is self.spouse:
+            print(f'{other.id} is {self.id}\'s spouse.')
+            if relationship > 99:
+                relation_text = random.choice(['absolutely loves to the end of the earth ', f'has found {self_pronoun} second half in '])
+            elif relationship > 75:
+                relation_text = random.choice(['truly loves ', 'simply adores ', 'thinks is very special '])
+            elif relationship > 50:
+                relation_text = random.choice(['loves ', 'really enjoys ', 'is falling in love with '])
+            elif relationship > 25:
+                relation_text = random.choice(['is happily married to '])
+            elif relationship >= 0:
+                relation_text = random.choice(['likes ', 'is still getting to know ', 'cares about '])
+            elif relationship >= -25:
+                relation_text = random.choice(['isn\'t quite having a good time with ', 'is peeved with '])
+            elif relationship >= -50:
+                relation_text = random.choice(['is quite unhappy in {self_pronoun} marriage with ', 'loathes '])
+            elif relationship >= -75:
+                relation_text = random.choice(['despises ', 'hates '])
+            elif relationship > -99:
+                relation_text = random.choice(['absolutely despises ', 'is disgusted by ', 'is enemies with'])
+            elif relationship <= -100:
+                relation_text = random.choice(['is interested in spousicide as a means to resolving their tension with ',f'feels the cold breeze from the echoes of the retribution of abandoned morality calling out to {self_obj_pronoun} to take action against '])
+        else:
+            if relationship > 99:
+                relation_text = random.choice(['is inseparable from '])
+            elif relationship > 75:
+                relation_text = random.choice(['is best friends with ', 'loves hanging out with '])
+            elif relationship > 50:
+                relation_text = random.choice(['thinks is great ', 'is good friends with '])
+            elif relationship > 25:
+                relation_text = random.choice(['is friends with ', 'thinks is cool '])
+            elif relationship >= 0:
+                relation_text = random.choice(['feels ambivalent towards ', 'mildly appreciates '])
+            elif relationship >= -25:
+                relation_text = random.choice(['doesn\'t care for ', 'is peeved with ', 'has a slight dislike towards '])
+            elif relationship >= -50:
+                relation_text = random.choice(['is quite unhappy with ', 'loathes '])
+            elif relationship >= -75:
+                relation_text = random.choice(['despises ', 'hates '])
+            elif relationship > -99:
+                relation_text = random.choice(['absolutely despises ', 'is disgusted by '])
+            elif relationship <= -100:
+                relation_text = random.choice(['is interested in murdering ', 'deeply hates with every fiber of their being ', 'is truly disgusted with on a moral level '])
+        print(f"{self_pronoun} {relation_text} {other_pronoun}.")
 
     def print(self):
         print(f'HUMAN #{self.id}:')
@@ -77,10 +154,14 @@ class Human:
             print('Has not gone through puberty.' if self.is_alive_bool else 'Did not go through puberty.')
         else:
             print(f'{has_had} the following children: {[child.id for child in self.children]}' if self.children else f'{has_had} no children of record.')
-            print(f'{has_had} a spouse {self.spouse.id}.' if self.spouse else f"{does_did} not have a spouse.")
+            if self.spouse:
+                print(f'{has_had} a spouse: {self.spouse.id}.' )
+                self.print_relationship(self.spouse)
+            else:
+                print(f"{does_did} not have a spouse.")
         print(f'{has_had} the following parents: {[parent.id for parent in self.parents]}' if self.parents else f'{has_had} no parents of record.')
         print((f'{is_was} a {self.job}') if self.job else f'{has_had} no designated occupation.')
-        print(f'{has_had} the following OCEAN traits: {", ".join(map(str, self.OCEAN.values()))}')
+        print(f'{has_had} the following OCEAN traits: {", ".join(map(str, self.personality.values()))}')
         print(' ')
         print(' ')
 
@@ -102,7 +183,9 @@ class Simulation():
         # create seed humans
         for i in range(random.randrange(15, 40)):
             age = random.randrange(15, 35)
-            self.humans.append(Human(i, age, birth_tick=0-age, gender=random.choices(list(Gender), [0.45, 0.45, 0.1], k=1)[0], is_alive_bool=True, puberty_bool=True, parents=None, children=None, spouse=None, job=None, x=(np.random.uniform(0, 100)), y=(np.random.uniform(0, 100)), OCEAN={'O':random.uniform(0,1),'C':random.uniform(0,1),'E':random.uniform(0,1),'A':random.uniform(0,1),'N':random.uniform(0,1)}))
+            gender = random.choices(list(Gender), [0.45, 0.45, 0.1], k=1)[0]
+            personality = {'O':random.uniform(0,1),'C':random.uniform(0,1),'E':random.uniform(0,1),'A':random.uniform(0,1),'N':random.uniform(0,1)}
+            self.humans.append(Human(i, age, birth_tick=0-age, gender=gender, is_alive_bool=True, puberty_bool=True, parents=None, children=None, spouse=None, job=None, x=(np.random.uniform(0, 100)), y=(np.random.uniform(0, 100)), personality=personality, relationships={}))
         self.sim_messages.append(f'You come into awareness of a corner of the world that has {len(self.humans)} humans in it')
     
     def kill(self):
@@ -190,13 +273,20 @@ class Simulation():
     def determine_jobs(self):
         for human in self.humans:
             # could segment by age (eg 16) but am choosing to segment by puberty
-            if not human.puberty_bool or human.job:
+            if human.job or not human.puberty_bool:
                 break
             
             # TODO OCEAN traits should affect job probabilities
+
+            # high O makes much more likely to become inventor/artist
+            # hihg o = moderately more likely to be learner
+            # extraversion -> much more likely ot be politician
+            # high C -> warrior, leader
+            # low O -> love of routine. farmer likely
+
             assignment = random.choices(
-                [Job.FARMER, Job.INVENTOR, Job.ARTIST, Job.LEARNER, Job.POLITICIAN, Job.WARRIOR],
-                [0.5,0.1,0.1,0.1,0.1,0.1]
+                [Job.FARMER, Job.INVENTOR, Job.ARTIST, Job.LEARNER, Job.LEADER, Job.WARRIOR, Job.MERCHANT],
+                [0.5,0.1,0.1,0.1,0.1,0.1,0.1]
             )[0]
             
             human.job = assignment
@@ -247,6 +337,7 @@ class Simulation():
         print(f'Pubescenses: {self.events["births"][self.time_ticks]}')
         print(f'Deaths: {self.events["deaths"][self.time_ticks]}')
         # self.show_ages()
+        print(f"\n")
 
     # prints all available info about the specified human
     # args: takes a start and stop range of humans to print out
