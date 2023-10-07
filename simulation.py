@@ -8,6 +8,10 @@ from typing import Optional
 import matplotlib.pyplot as plt
 # 1 tick is 1 day
 
+MALE_PUBERTY_MEAN = 12
+FEMALE_PUBERTY_MEAN = 10
+NONBINARY_PUBERTY_MEAN = (MALE_PUBERTY_MEAN+FEMALE_PUBERTY_MEAN)/2
+
 # uses statistics to determine whether or not a particular event happens this year
 # in: x, mu, sigma
 def event_happens_gaussian(x: int, mu: int, sigma: float = 10) -> bool:
@@ -81,10 +85,10 @@ class Simulation():
         self.events['interactions'].append(0)
         self.events['marriages'].append(0)
 
-        self.birth_children()
+        self.determine_births()
         self.age_humans()
         self.determine_puberty()
-        self.marry_humans()
+        self.determine_marriages()
 
         self.simulate_interactions(n_steps=100, dt=0.01, delta=0.5, interaction_radius=1.0)
 
@@ -95,7 +99,7 @@ class Simulation():
         self.time_elapsed_ticks += 1
 
     
-    def birth_children(self):
+    def determine_births(self):
         # birth children
         # find married (living) women
         # (would it be cheaperr to have a re-usable 'list of married women')? deal with deaths/remarriages also
@@ -123,11 +127,11 @@ class Simulation():
         # determine puberty
         for human in self.humans:
             if not human.puberty_bool:
-                if (human.gender == Gender.FEMALE and event_happens_gaussian(human.age, 10, 1.5)) or (human.gender == Gender.MALE and event_happens_gaussian(human.age, 12, 1.5) or (human.gender == Gender.NONBINARY and event_happens_gaussian(human.age, 11, 1.5))):
+                if (human.gender == Gender.FEMALE and event_happens_gaussian(human.age, FEMALE_PUBERTY_MEAN, 1.5)) or (human.gender == Gender.MALE and event_happens_gaussian(human.age, MALE_PUBERTY_MEAN, 1.5) or (human.gender == Gender.NONBINARY and event_happens_gaussian(human.age, NONBINARY_PUBERTY_MEAN, 1.5))):
                     human.puberty_bool = True
                     self.events['pubescences'][self.time_elapsed_ticks] += 1
 
-    def marry_humans(self):
+    def determine_marriages(self):
         # pair spouses (O(n)!)
         # TODO more efficient way to hide dead humans from list to prevent iterating. how? do i move to a separate list?
         for human in self.humans:
