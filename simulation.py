@@ -30,6 +30,15 @@ class Gender(Enum):
     MALE = 1
     NONBINARY = 2
 
+class Job(Enum):
+    FARMER = 0
+    INVENTOR = 1
+    ARTIST = 2
+    POLITICIAN = 3
+    LEARNER = 4
+    WARRIOR = 5
+
+
 
 class Human:
     def __init__(self, age: int, gender: Gender, is_alive_bool: bool, puberty_bool: bool, parents: Optional[list["Human"]], children: Optional[list["Human"]], spouse: Optional["Human"], job: Optional[str], x:int, y:int, OCEAN:dict):
@@ -51,6 +60,10 @@ class Human:
 
     def interact(self, other):
         # print(f'human of age {self.age} is interacting with a human of age {other.age} at {self.x},{self.y}!!')
+        pass
+
+    def print(self):
+        
         pass
 
 # has: list of human objs,
@@ -89,6 +102,7 @@ class Simulation():
         self.age_humans()
         self.determine_puberty()
         self.determine_marriages()
+        self.assign_jobs()
 
         self.simulate_interactions(n_steps=100, dt=0.01, delta=0.5, interaction_radius=1.0)
 
@@ -154,6 +168,20 @@ class Simulation():
                         rand_human.spouse = human
                         self.events['marriages'][self.time_elapsed_ticks] += 1
 
+    def assign_jobs(self):
+        for human in self.humans:
+            # could segment by age (eg 16) but am choosing to segment by puberty
+            if not human.puberty_bool or human.job:
+                break
+            
+            # TODO OCEAN traits should affect job probabilities
+            assignment = random.choices(
+                [Job.FARMER, Job.INVENTOR, Job.ARTIST, Job.LEARNER, Job.POLITICIAN, Job.WARRIOR],
+                [0.5,0.1,0.1,0.1,0.1,0.1]
+            )[0]
+            
+            human.job = assignment
+
     def simulate_interactions(self, n_steps: int, dt: float, delta: float, interaction_radius: float):
         n_agents = len(self.humans)
         
@@ -198,6 +226,16 @@ class Simulation():
         print(f'Pubescenses: {self.events["births"][self.time_elapsed_ticks]}')
         print(f'Deaths: {self.events["deaths"][self.time_elapsed_ticks]}')
         # self.show_ages()
+
+    # prints all available info about the specified human
+    # args: takes a start and stop range of humans to print out
+    def print_human_readout(self, start, end=None):
+        [self.humans[id].print(id) for id in range[start:end]]
+            
+
+
+        
+        
 
     def show_ages(self):
         [print(f'{human.age}') for human in self.humans]
