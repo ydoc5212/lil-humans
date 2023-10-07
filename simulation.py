@@ -6,11 +6,11 @@ from scipy.spatial import cKDTree
 import numpy as np
 from typing import Optional
 import matplotlib.pyplot as plt
-# 1 tick is 1 day
+# 1 tick is 1 year
 
 MALE_PUBERTY_MEAN = 12
 FEMALE_PUBERTY_MEAN = 10
-NONBINARY_PUBERTY_MEAN = (MALE_PUBERTY_MEAN+FEMALE_PUBERTY_MEAN)/2
+OTHER_PUBERTY_MEAN = (MALE_PUBERTY_MEAN+FEMALE_PUBERTY_MEAN)/2
 
 # uses statistics to determine whether or not a particular event happens this year
 # in: x, mu, sigma
@@ -28,7 +28,7 @@ def dies_this_year(age, life_expectancy):
 class Gender(Enum):
     FEMALE = 0
     MALE = 1
-    NONBINARY = 2
+    OTHER = 2
 
 class Job(Enum):
     FARMER = 0
@@ -41,8 +41,10 @@ class Job(Enum):
 
 
 class Human:
-    def __init__(self, age: int, gender: Gender, is_alive_bool: bool, puberty_bool: bool, parents: Optional[list["Human"]], children: Optional[list["Human"]], spouse: Optional["Human"], job: Optional[str], x:int, y:int, OCEAN:dict):
+    def __init__(self, id: int, age: int, birth_tick: int, gender: Gender, is_alive_bool: bool, puberty_bool: bool, parents: Optional[list["Human"]], children: Optional[list["Human"]], spouse: Optional["Human"], job: Optional[str], x:int, y:int, OCEAN:dict):
+        self.id = id
         self.age = age
+        self.birth_tick = birth_tick
         self.gender = gender
         self.is_alive_bool = is_alive_bool
         self.puberty_bool = puberty_bool
@@ -55,21 +57,37 @@ class Human:
         self.OCEAN = OCEAN
 
     # combine self and partner genetics into a new human
-    def give_birth(self, partner) -> "Human":
-        return Human(age=0, gender=random.choices(list(Gender), [0.45, 0.45, 0.1], k=1)[0], is_alive_bool=True, puberty_bool=False, parents=[self, partner], children=None, spouse=None, job=None, x=self.x, y=self.y, OCEAN={trait: (self.OCEAN[trait] + partner.OCEAN[trait]) / 2 for trait in self.OCEAN})
+    # args: partner (Human), current time in ticks, the id of the new human in the list
+    def give_birth(self, partner, time_ticks, id) -> "Human":
+        return Human(id=id, age=0, birth_tick=time_ticks, gender=random.choices(list(Gender), [0.45, 0.45, 0.1], k=1)[0], is_alive_bool=True, puberty_bool=False, parents=[self, partner], children=None, spouse=None, job=None, x=self.x, y=self.y, OCEAN={trait: (self.OCEAN[trait] + partner.OCEAN[trait]) / 2 for trait in self.OCEAN})
 
     def interact(self, other):
         # print(f'human of age {self.age} is interacting with a human of age {other.age} at {self.x},{self.y}!!')
         pass
 
     def print(self):
-        
-        pass
+        print(f'HUMAN #{self.id}:')
+        is_was = 'Is' if self.is_alive_bool else 'Was'
+        has_had = 'Has' if self.is_alive_bool else 'Had'
+        does_did = 'Does' if self.is_alive_bool else 'Did'
+        print(f'Was born in the year {self.birth_tick}, of the Human Era')
+        print(f'Is {self.age} years old.' if self.is_alive_bool else f'Died at {self.age} years of age, in the year {self.birth_tick+self.age}.')
+        print(f'{is_was} {self.gender}.')
+        if not self.puberty_bool:
+            print('Has not gone through puberty.' if self.is_alive_bool else 'Did not go through puberty.')
+        else:
+            print(f'{has_had} the following children: {[child.id for child in self.children]}' if self.children else f'{has_had} no children of record.')
+            print(f'{has_had} a spouse {self.spouse.id}.' if self.spouse else f"{does_did} not have a spouse.")
+        print(f'{has_had} the following parents: {[parent.id for parent in self.parents]}' if self.parents else f'{has_had} no parents of record.')
+        print((f'{is_was} a {self.job}') if self.job else f'{has_had} no designated occupation.')
+        print(f'{has_had} the following OCEAN traits: {", ".join(map(str, self.OCEAN.values()))}')
+        print(' ')
+        print(' ')
 
 # has: list of human objs,
 class Simulation():
-    def __init__(self, time_elapsed_ticks=0, tick_to_stop=0):
-        self.time_elapsed_ticks: int = 0
+    def __init__(self, time_ticks=0, tick_to_stop=0):
+        self.time_ticks: int = 0
         self.tick_to_stop: int = tick_to_stop
         self.humans: list[Human] = []
         self.LIFE_EXPECTANCY: int = random.randrange(45, 60)
@@ -83,7 +101,8 @@ class Simulation():
 
         # create seed humans
         for i in range(random.randrange(15, 40)):
-            self.humans.append(Human(age=random.randrange(15, 35), gender=random.choices(list(Gender), [0.45, 0.45, 0.1], k=1)[0], is_alive_bool=True, puberty_bool=True, parents=None, children=None, spouse=None, job=None, x=(np.random.uniform(0, 100)), y=(np.random.uniform(0, 100)), OCEAN={'O':random.uniform(0,1),'C':random.uniform(0,1),'E':random.uniform(0,1),'A':random.uniform(0,1),'N':random.uniform(0,1)}))
+            age = random.randrange(15, 35)
+            self.humans.append(Human(i, age, birth_tick=0-age, gender=random.choices(list(Gender), [0.45, 0.45, 0.1], k=1)[0], is_alive_bool=True, puberty_bool=True, parents=None, children=None, spouse=None, job=None, x=(np.random.uniform(0, 100)), y=(np.random.uniform(0, 100)), OCEAN={'O':random.uniform(0,1),'C':random.uniform(0,1),'E':random.uniform(0,1),'A':random.uniform(0,1),'N':random.uniform(0,1)}))
         self.sim_messages.append(f'You come into awareness of a corner of the world that has {len(self.humans)} humans in it')
     
     def kill(self):
@@ -99,10 +118,10 @@ class Simulation():
         self.events['marriages'].append(0)
 
         self.determine_births()
-        self.age_humans()
+        self.determine_ages()
         self.determine_puberty()
         self.determine_marriages()
-        self.assign_jobs()
+        self.determine_jobs()
 
         self.simulate_interactions(n_steps=100, dt=0.01, delta=0.5, interaction_radius=1.0)
 
@@ -110,7 +129,7 @@ class Simulation():
         self.print_sim_readout()
 
         # mark tick completed, raise counter
-        self.time_elapsed_ticks += 1
+        self.time_ticks += 1
 
     
     def determine_births(self):
@@ -122,18 +141,19 @@ class Simulation():
             if human.gender == Gender.FEMALE and human.spouse and human.is_alive_bool and human.spouse.is_alive_bool:
                 # likelihood of pregnancy in a married couple
                 if random.random() > 0.3:
-                    self.humans.append(human.give_birth(human.spouse))
-                    self.events['births'][self.time_elapsed_ticks] += 1
+                    self.humans.append(human.give_birth(human.spouse, self.time_ticks, len(self.humans)))
+                    self.events['births'][self.time_ticks] += 1
 
-    def age_humans(self):
+    def determine_ages(self):
         # age out humans
         for human in self.humans:
             # determine whether human dies
             # normal distribution around LIFE_EXPECTANCY
             if dies_this_year(human.age, self.LIFE_EXPECTANCY):
                 human.is_alive_bool = False
-                self.events['deaths'][self.time_elapsed_ticks] += 1  
+                self.events['deaths'][self.time_ticks] += 1  
             # increase everyone's age by 1
+            # this is non-lossy because we store the birth tick
             if human.is_alive_bool:
                 human.age += 1
 
@@ -141,13 +161,12 @@ class Simulation():
         # determine puberty
         for human in self.humans:
             if not human.puberty_bool:
-                if (human.gender == Gender.FEMALE and event_happens_gaussian(human.age, FEMALE_PUBERTY_MEAN, 1.5)) or (human.gender == Gender.MALE and event_happens_gaussian(human.age, MALE_PUBERTY_MEAN, 1.5) or (human.gender == Gender.NONBINARY and event_happens_gaussian(human.age, NONBINARY_PUBERTY_MEAN, 1.5))):
+                if (human.gender == Gender.FEMALE and event_happens_gaussian(human.age, FEMALE_PUBERTY_MEAN, 1.5)) or (human.gender == Gender.MALE and event_happens_gaussian(human.age, MALE_PUBERTY_MEAN, 1.5) or (human.gender == Gender.OTHER and event_happens_gaussian(human.age, OTHER_PUBERTY_MEAN, 1.5))):
                     human.puberty_bool = True
-                    self.events['pubescences'][self.time_elapsed_ticks] += 1
+                    self.events['pubescences'][self.time_ticks] += 1
 
     def determine_marriages(self):
-        # pair spouses (O(n)!)
-        # TODO more efficient way to hide dead humans from list to prevent iterating. how? do i move to a separate list?
+        # pair spouses (O(n))
         for human in self.humans:
             # female-first matching; will soon have an alt approach
             if human.gender == Gender.FEMALE and not human.spouse and human.is_alive_bool and human.puberty_bool:
@@ -166,9 +185,9 @@ class Simulation():
                     if rand_human:
                         human.spouse = rand_human
                         rand_human.spouse = human
-                        self.events['marriages'][self.time_elapsed_ticks] += 1
+                        self.events['marriages'][self.time_ticks] += 1
 
-    def assign_jobs(self):
+    def determine_jobs(self):
         for human in self.humans:
             # could segment by age (eg 16) but am choosing to segment by puberty
             if not human.puberty_bool or human.job:
@@ -182,6 +201,7 @@ class Simulation():
             
             human.job = assignment
 
+# TODO dead humans shouldnt move around
     def simulate_interactions(self, n_steps: int, dt: float, delta: float, interaction_radius: float):
         n_agents = len(self.humans)
         
@@ -209,33 +229,37 @@ class Simulation():
             pairs = tree.query_pairs(interaction_radius)
             
             for i, j in pairs:
-                self.humans[i].interact(self.humans[j])
-                self.humans[j].interact(self.humans[i])
-                self.events['interactions'][self.time_elapsed_ticks] += 1
+                if self.humans[i].is_alive_bool and self.humans[j].is_alive_bool:
+                    self.humans[i].interact(self.humans[j])
+                    self.humans[j].interact(self.humans[i])
+                    self.events['interactions'][self.time_ticks] += 1
 
     def print_sim_readout(self):
         while self.sim_messages:
             print(self.sim_messages[0])
             self.sim_messages.pop(0)
-        print(f'\nTICK {self.time_elapsed_ticks}:')
+        print(f'\YEAR {self.time_ticks} of the HUMAN ERA:')
         print(f'Living Humans: {len([human for human in self.humans if human.is_alive_bool ])}')
 
-        print(f'Interactions: {self.events["interactions"][self.time_elapsed_ticks]}')
-        print(f'Births: {self.events["births"][self.time_elapsed_ticks]}')
-        print(f'Marriages: {self.events["marriages"][self.time_elapsed_ticks]}')
-        print(f'Pubescenses: {self.events["births"][self.time_elapsed_ticks]}')
-        print(f'Deaths: {self.events["deaths"][self.time_elapsed_ticks]}')
+        print(f'Interactions: {self.events["interactions"][self.time_ticks]}')
+        print(f'Births: {self.events["births"][self.time_ticks]}')
+        print(f'Marriages: {self.events["marriages"][self.time_ticks]}')
+        print(f'Pubescenses: {self.events["births"][self.time_ticks]}')
+        print(f'Deaths: {self.events["deaths"][self.time_ticks]}')
         # self.show_ages()
 
     # prints all available info about the specified human
     # args: takes a start and stop range of humans to print out
-    def print_human_readout(self, start, end=None):
-        [self.humans[id].print(id) for id in range[start:end]]
-            
+    def print_humans(self, start, end):
+        for id in range(start,end):
+            if 0 <= id < len(self.humans):  # checking if in bounds
+                self.humans[id].print()
+
+        # TODO can take any parameter, eg ages, and shows it for specified range of humans. use enum
+        # for i, human in enumerate(self.humans[start:end]):
+        #     print(f"Human {i + start}: {human.age}")
 
 
-        
-        
 
     def show_ages(self):
         [print(f'{human.age}') for human in self.humans]
@@ -253,11 +277,11 @@ class Simulation():
 
 
 if __name__ == '__main__':
-    sim = Simulation(time_elapsed_ticks=0, tick_to_stop=1)
+    sim = Simulation(time_ticks=0, tick_to_stop=1)
 
-    while(True):
+    while(1<2):
         # run sim
-        while(sim.time_elapsed_ticks < sim.tick_to_stop):
+        while(sim.time_ticks < sim.tick_to_stop):
             sim.do_tick()
 
         response = input('How many ticks would you like to simulaculate before stopping? Eg. 10:\n')
@@ -265,7 +289,12 @@ if __name__ == '__main__':
         # handle possible input
         if response == "plot":
             sim.plot()
-        if response == "kill":
+        elif response == "kill":
             sim.kill()
+        elif response.startswith("print_humans"):
+            args = response.split()
+            start = int(args[1]) if len(args) > 1 else 0
+            end = int(args[2]) if len(args) > 2 else len(sim.humans)
+            sim.print_humans(start, end)
         elif response.isdigit():
-            sim.tick_to_stop = int(response) + sim.time_elapsed_ticks
+            sim.tick_to_stop = int(response) + sim.time_ticks
